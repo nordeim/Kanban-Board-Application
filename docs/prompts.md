@@ -1,1 +1,14 @@
 awesome job! please turn your detailed `UX Structure Plan` for the YouTube sponsorship workflow into an `UI Implementation Plan` using Shadcn-UI components. Update your plan document with the appropriate Shadcn-UI component to be used in the `UI structure` and where. And you should only write the name of the appropriate components to be used besides the structure nodes. Do not add the actual code yet. please use extensive online search to carefully research the correct Shadcn-UI component label to use for each node in the structure. Do not make up the Shadcn-UI component names. in the actual coding planning stage, we must be able to map each Shadcn-UI label to a working code snippet. please put on your deep-thinking hat to deeply and thoroughly explore carefully and systematically how to create the best Shadcn-UI components mapping for your `UI Structure Plan` based on the actual component labels in the actual current Shadcn-UI library. apply rigorous and meticulous methodology and approach to think, explore, then create a detailed execution plan, then create the actual mapping `UI Structure Tree to Shadcn-UI Mapping` document in markdown format. please to your utmost best to surprise with your brilliant design. thank you and good luck!
+
+---
+awesome job! please put on the same deep-thinking hat to deeply and thoroughly explore carefully and systematically to create a detailed and comprehensive `Project Requirements Document` in markdown document that matches your re-imagined implementation. then create an awesome `README.md` for the GitHub repository to host this project. this document will guide any new developer to build the whole codebase with confidence and accuracy, clear and logical description that gives no ambiguity to execute the coding. thank you and good luck!
+
+use the same rigorous and meticulous approach to deeply re-imagine an equally awesome and comprehensive and informative `README.md` for the new GitHub repository at https://github.com/nordeim/Kanban-Board-Application.git  to host your re-imagined design. make your README so compelling that new contributors will be immediately attracted to this awesomely gorgeous e-commerce platform. use at least 4000 words for the `README/md` in markdown format, add the following sections at appropriate point / sequence:
+
+1. add / update a section to show / describe the project codebase file hierarchy
+2. add / update a section for a flowchart diagram to describe the interactions between various files and modules
+3. add / update a section to list and describe the files in the codebase file hierarchy 
+4. Current features implemented (partially or fully), Roadmap for suggested improvements divided into two sections, one for the immediate and one for the long-term goals.
+5. Clear and detailed deployment guide starting from the GitHub repository
+
+---
