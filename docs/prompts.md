@@ -32,3 +32,6 @@ awesome job! please use the same rigorous and meticulous approach to very carefu
 ---
 awesome job! please use the same rigorous and meticulous approach to deeply and thoroughly explore for the best implementation option to create the complete updated version of the specified files in phase 3 of the comprehensive execution plan shared earlier. please carefully plan how to create the complete version of each of the files in phase 3 before proceeding cautiously. please put on your deep-thinking hat to deeply and thoroughly explore how to re-imagine the complete updated files specified in phase 3 of the comprehensive execution plan. thank you and good luck my very best coding assistant and expert in the world!
 
+---
+awesome job! please use the same rigorous and meticulous approach to deeply and thoroughly explore for the best implementation option to create the complete updated version of the specified files in phase 4 of the comprehensive execution plan shared earlier. please carefully plan how to create the complete version of each of the files in phase 4 before proceeding cautiously. please put on your deep-thinking hat to deeply and thoroughly explore how to re-imagine the complete updated files specified in phase 4 of the comprehensive execution plan. thank you and good luck my very best coding assistant and expert in the world!
+
