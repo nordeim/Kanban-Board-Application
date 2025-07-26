@@ -24,7 +24,16 @@ When prompted by Shadcn-UI init, use these settings:
 
 # additional for auth
 npm install bcryptjs @types/bcryptjs
-npm install -D tsx
+npm install -D TSX
+
+# database initialization
+npx prisma generate
+npx prisma migrate dev --name init
+# seed the database
+npm run db:seed
+
+# Start the dev server
+npm run dev
 
 ###
 # Type checking
