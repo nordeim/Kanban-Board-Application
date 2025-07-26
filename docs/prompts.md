@@ -28,3 +28,7 @@ awesome job! yes, please put on the same deep-thinking hat to deeply and thoroug
 
 ---
 awesome job! please use the same rigorous and meticulous approach to very carefully and systematically review the database schema design in the sql file  you just created. use line by line comparison to fully and very deeply understand the database design and structure, then put on your deep-thinking hat to deeply and thoroughly explore the best implementation option to create an accurate and complete prisma/schema.prisma file to fully and faithfully represent the database design in the sql file generated. please plan very carefully how your will create a complete representation in your carefully implemented prisma/schema.prisma. remember to use line by line comparison so as not to miss (omit) any part of the database schema represented by the sql file created earlier.
+
+---
+awesome job! please use the same rigorous and meticulous approach to deeply and thoroughly explore for the best implementation option to create the complete updated version of the specified files in phase 3 of the comprehensive execution plan shared earlier. please carefully plan how to create the complete version of each of the files in phase 3 before proceeding cautiously. please put on your deep-thinking hat to deeply and thoroughly explore how to re-imagine the complete updated files specified in phase 3 of the comprehensive execution plan. thank you and good luck my very best coding assistant and expert in the world!
+
