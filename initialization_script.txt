@@ -22,6 +22,10 @@ When prompted by Shadcn-UI init, use these settings:
 - Configure the import alias for components? → @/components
 - Configure the import alias for utils? → @/lib/utils
 
+# additional for auth
+npm install bcryptjs @types/bcryptjs
+npm install -D tsx
+
 ###
 # Type checking
 npm run type-check
