@@ -1,0 +1,116 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  
+  "env": {
+    "NODE_ENV": "production"
+  },
+  
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database_url",
+      "NEXTAUTH_SECRET": "@nextauth_secret",
+      "NEXTAUTH_URL": "@nextauth_url",
+      "GOOGLE_CLIENT_ID": "@google_client_id",
+      "GOOGLE_CLIENT_SECRET": "@google_client_secret"
+    }
+  },
+  
+  "functions": {
+    "app/api/deals/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/deals/[id]/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/analytics/export/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/webhooks/*/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  
+  "crons": [
+    {
+      "path": "/api/cron/daily-analytics",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/overdue-reminders",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 2 * * *"
+    }
+  ],
+  
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-DNS-Prefetch-Control",
+          "value": "on"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    }
+  ],
+  
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/board",
+      "permanent": false
+    }
+  ],
+  
+  "rewrites": [
+    {
+      "source": "/api/health",
+      "destination": "/api/health-check"
+    }
+  ],
+  
+  "regions": ["iad1"],
+  
+  "github": {
+    "silent": true,
+    "autoAlias": true
+  }
+}
