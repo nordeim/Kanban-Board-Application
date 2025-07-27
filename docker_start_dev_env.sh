@@ -28,3 +28,10 @@ docker compose -f docker-compose.dev.yml logs -f
 
 # Specific service
 docker compose -f docker-compose.dev.yml logs -f app
+
+# Execute commands:
+# Run migrations
+docker compose -f docker-compose.dev.yml exec app npm run db:migrate
+
+# Open Prisma Studio
+docker compose -f docker-compose.dev.yml exec app npm run db:studio
