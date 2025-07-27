@@ -1,0 +1,142 @@
+# docker-compose.dev.yml
+# Development environment configuration
+# Optimized for hot reloading and debugging
+
+version: '3.9'
+
+services:
+  # PostgreSQL 16 Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sponsorflow_postgres_dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sponsorflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devsecret}
+      POSTGRES_DB: ${POSTGRES_DB:-sponsorflow_dev}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sponsorflow} -d ${POSTGRES_DB:-sponsorflow_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sponsorflow_dev
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: sponsorflow_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --appendfilename "appendonly.aof"
+    volumes:
+      - redis_data_dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sponsorflow_dev
+
+  # Next.js Application (Development Mode)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        - NODE_ENV=development
+    container_name: sponsorflow_app_dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Node.js debugging port
+    environment:
+      # Application
+      NODE_ENV: development
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sponsorflow}:${POSTGRES_PASSWORD:-devsecret}@postgres:5432/${POSTGRES_DB:-sponsorflow_dev}?schema=public
+      
+      # Redis
+      REDIS_URL: redis://redis:6379
+      
+      # Auth
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-devsecret_minimum_32_characters_long}
+      
+      # OAuth (use your actual credentials)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      
+      # Development specific
+      NEXT_TELEMETRY_DISABLED: 1
+      WATCHPACK_POLLING: true # For file watching in Docker
+    volumes:
+      # Mount source code for hot reloading
+      - ./src:/app/src:delegated
+      - ./public:/app/public:delegated
+      - ./prisma:/app/prisma:delegated
+      - ./next.config.js:/app/next.config.js:delegated
+      - ./tailwind.config.ts:/app/tailwind.config.ts:delegated
+      - ./tsconfig.json:/app/tsconfig.json:delegated
+      - ./.env.local:/app/.env.local:delegated
+      
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev
+    networks:
+      - sponsorflow_dev
+
+  # Database Administration Tool
+  adminer:
+    image: adminer:4.8.1
+    container_name: sponsorflow_adminer_dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha-dark
+    depends_on:
+      - postgres
+    networks:
+      - sponsorflow_dev
+
+  # Mailhog for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: sponsorflow_mailhog_dev
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    networks:
+      - sponsorflow_dev
+
+networks:
+  sponsorflow_dev:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  redis_data_dev:
+    driver: local
