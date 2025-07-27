@@ -7,7 +7,7 @@ version: '3.9'
 services:
   # PostgreSQL 16 Database
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-bookworm
     container_name: sponsorflow_postgres_dev
     restart: unless-stopped
     ports:
