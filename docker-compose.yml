@@ -1,0 +1,239 @@
+# docker-compose.yml
+# Production environment configuration
+# Optimized for performance, security, and reliability
+
+version: '3.9'
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: sponsorflow_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./public:/usr/share/nginx/html:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - sponsorflow_prod
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL 16 Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sponsorflow_postgres
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432" # Only bind to localhost
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: ${POSTGRES_DB:-sponsorflow}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./backups:/backups
+    secrets:
+      - postgres_user
+      - postgres_password
+    networks:
+      - sponsorflow_prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_user) -d ${POSTGRES_DB:-sponsorflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Redis Cache with Persistence
+  redis:
+    image: redis:7-alpine
+    container_name: sponsorflow_redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379" # Only bind to localhost
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfilename "appendonly.aof"
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --requirepass $${REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    secrets:
+      - redis_password
+    networks:
+      - sponsorflow_prod
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "$$(cat /run/secrets/redis_password)", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_ID=${BUILD_ID:-latest}
+    image: sponsorflow:${BUILD_ID:-latest}
+    container_name: sponsorflow_app
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      # Application
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://sponsorflow.example.com}
+      
+      # Database
+      DATABASE_URL_FILE: /run/secrets/database_url
+      
+      # Redis
+      REDIS_URL_FILE: /run/secrets/redis_url
+      
+      # Auth
+      NEXTAUTH_URL: ${APP_URL:-https://sponsorflow.example.com}
+      NEXTAUTH_SECRET_FILE: /run/secrets/nextauth_secret
+      
+      # OAuth
+      GOOGLE_CLIENT_ID_FILE: /run/secrets/google_client_id
+      GOOGLE_CLIENT_SECRET_FILE: /run/secrets/google_client_secret
+      
+      # Email
+      EMAIL_SERVER_HOST: ${EMAIL_SERVER_HOST}
+      EMAIL_SERVER_PORT: ${EMAIL_SERVER_PORT}
+      EMAIL_FROM: ${EMAIL_FROM}
+      
+      # Performance
+      NODE_OPTIONS: "--max-old-space-size=2048"
+    volumes:
+      - uploads:/app/uploads
+      - app_logs:/app/logs
+    secrets:
+      - database_url
+      - redis_url
+      - nextauth_secret
+      - google_client_id
+      - google_client_secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sponsorflow_prod
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 30s
+      start_period: 40s
+      retries: 3
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Backup Service
+  backup:
+    image: postgres:16-alpine
+    container_name: sponsorflow_backup
+    restart: always
+    environment:
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    secrets:
+      - postgres_password
+    networks:
+      - sponsorflow_prod
+    depends_on:
+      - postgres
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "while true; do
+        /backup.sh
+        sleep 86400
+      done"
+
+networks:
+  sponsorflow_prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads:
+    driver: local
+  app_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+secrets:
+  postgres_user:
+    file: ./secrets/postgres_user.txt
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
+  database_url:
+    file: ./secrets/database_url.txt
+  redis_url:
+    file: ./secrets/redis_url.txt
+  nextauth_secret:
+    file: ./secrets/nextauth_secret.txt
+  google_client_id:
+    file: ./secrets/google_client_id.txt
+  google_client_secret:
+    file: ./secrets/google_client_secret.txt
