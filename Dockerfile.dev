@@ -3,7 +3,8 @@
 # The latest Docker image name for the current Node.js version on Alpine Linux is typically found by combining the node repository name with the current-alpine tag.
 # node:current-alpine
 # This tag points to the latest non-LTS (Long Term Support) release of Node.js built on Alpine Linux. For specific Node.js versions, you would replace current with the desired version number, for example, node:24-alpine for Node.js 24 on Alpine. For debian, 22-bookworm
-FROM node:22-alpine AS base
+# FROM node:22-alpine AS base
+FROM node:22-bookworm AS base
 
 # Install dependencies for building native modules
 RUN apk add --no-cache libc6-compat python3 make g++
