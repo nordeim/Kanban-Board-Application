@@ -409,8 +409,8 @@ We ❤️ contributions! Here's how you can help:
 **Development Setup:**
 ```bash
 # Fork and clone
-git clone https://github.com/YOUR_USERNAME/Kanban-Board-Application.git
-cd Kanban-Board-Application
+git clone https://github.com/YOUR_USERNAME/Kanban-Board-SponsorFlow.git
+cd Kanban-Board-SponsorFlow
 
 # Create branch
 git checkout -b feature/amazing-feature
